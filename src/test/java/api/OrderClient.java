@@ -1,31 +1,40 @@
 package api;
 
+import com.google.gson.Gson;
+import io.qameta.allure.Step;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
-public class OrderClient {
-    private static final String BASE_URL = "https://stellarburgers.education-services.ru/api";
+import java.util.List;
 
+public class OrderClient extends BaseClient {
+    private static final Gson gson = new Gson();
+
+    @Step("Получение списка ингредиентов")
     public Response getIngredients() {
         return RestAssured.given()
                 .header("Content-Type", "application/json")
-                .get(BASE_URL + "/ingredients");
+                .get("/ingredients");
     }
 
-    public Response createOrder(String ingredients, String accessToken) {
-        String body = String.format("{\"ingredients\":%s}", ingredients);
+    @Step("Создание заказа с авторизацией")
+    public Response createOrder(List<String> ingredients, String accessToken) {
+        OrderRequest request = new OrderRequest(ingredients);
+        String body = gson.toJson(request);
         return RestAssured.given()
                 .header("Content-Type", "application/json")
                 .header("Authorization", accessToken)
                 .body(body)
-                .post(BASE_URL + "/orders");
+                .post("/orders");
     }
 
-    public Response createOrderWithoutAuth(String ingredients) {
-        String body = String.format("{\"ingredients\":%s}", ingredients);
+    @Step("Создание заказа без авторизации")
+    public Response createOrderWithoutAuth(List<String> ingredients) {
+        OrderRequest request = new OrderRequest(ingredients);
+        String body = gson.toJson(request);
         return RestAssured.given()
                 .header("Content-Type", "application/json")
                 .body(body)
-                .post(BASE_URL + "/orders");
+                .post("/orders");
     }
 }
